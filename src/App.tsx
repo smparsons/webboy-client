@@ -1,8 +1,8 @@
 import { Button, Typography, styled } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 
+import init from "./core/webboyCore";
 import { FileUploadButton } from "./fileUploadButton";
-import init from "./pkg/webboy_core.js";
 
 const AppWrapper = styled("div")`
     display: grid;
