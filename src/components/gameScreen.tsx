@@ -27,7 +27,7 @@ const initializeCanvas = (canvas: HTMLCanvasElement): void => {
     canvasContext?.putImageData(imageData, 0, 0);
 };
 
-const GameScreen = ({ wasmInitialized }: GameScreenProps) => {
+const GameScreen = ({ wasmInitialized }: GameScreenProps): JSX.Element => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -36,7 +36,9 @@ const GameScreen = ({ wasmInitialized }: GameScreenProps) => {
         }
     }, [wasmInitialized]);
 
-    return <Screen width="160" height="144" ref={canvasRef} />;
+    return (
+        <Screen width={GAMEBOY_WIDTH} height={GAMEBOY_HEIGHT} ref={canvasRef} />
+    );
 };
 
 interface GameScreenProps {
