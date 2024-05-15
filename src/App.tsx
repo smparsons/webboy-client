@@ -90,14 +90,12 @@ const App = () => {
                                 A simple online Gameboy Emulator.
                             </Typography>
                         </div>
-                        <div>
-                            <Canvas
-                                id="screen"
-                                width="160"
-                                height="144"
-                                ref={canvasRef}
-                            />
-                        </div>
+                        <Canvas
+                            id="screen"
+                            width="160"
+                            height="144"
+                            ref={canvasRef}
+                        />
                         <BufferFileUpload
                             label="Load ROM"
                             onFileSelect={setRomBuffer}
