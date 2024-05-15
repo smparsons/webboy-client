@@ -17,7 +17,6 @@ export const openFileDialog = (
 
 export const FileUploadButton = ({
     accept,
-    multiple = false,
     onFileSelect,
     ...buttonProps
 }: FileUploadButtonProps): JSX.Element => {
@@ -28,7 +27,6 @@ export const FileUploadButton = ({
                 type="file"
                 accept={accept}
                 ref={fileInputRef}
-                multiple={multiple}
                 onChange={event => onFileSelect(event.target.files)}
             />
             <Button
@@ -40,9 +38,8 @@ export const FileUploadButton = ({
     );
 };
 
-interface FileUploadButtonProps extends ButtonProps {
+export interface FileUploadButtonProps extends ButtonProps {
     accept: string;
-    multiple?: boolean;
     children: React.ReactNode;
     onFileSelect: (fileList: FileList | null) => void;
 }

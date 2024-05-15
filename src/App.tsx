@@ -1,21 +1,19 @@
 import { Button, Typography, styled } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 
+import {
+    BufferFileUpload,
+    FileBufferObject,
+} from "./components/bufferFileUpload";
+import { CssGrid, GapSize, Orientation, Position } from "./components/cssGrid";
 import init from "./core/webboyCore";
-import { FileUploadButton } from "./fileUploadButton";
 
-const AppWrapper = styled("div")`
-    display: grid;
-    justify-content: center;
+const AppGrid = styled(CssGrid)`
     height: 100%;
 `;
 
-const InterfaceWrapper = styled("div")`
-    display: grid;
-    grid-auto-flow: row;
-    gap: 32px;
+const InterfaceGrid = styled(CssGrid)`
     padding: 32px;
-    justify-items: start;
 `;
 
 const GAMEBOY_WIDTH = 160;
@@ -29,6 +27,11 @@ const Canvas = styled("canvas")`
 const App = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [wasmInitialized, setWasmInitialized] = useState(false);
+
+    const [romBuffer, setRomBuffer] = useState(null as FileBufferObject | null);
+    const [biosBuffer, setBiosBuffer] = useState(
+        null as FileBufferObject | null,
+    );
 
     const initializeCanvas = (): void => {
         const canvasElement = canvasRef.current;
@@ -73,8 +76,12 @@ const App = () => {
     }, [wasmInitialized]);
 
     return (
-        <AppWrapper>
-            <InterfaceWrapper>
+        <AppGrid justifyContent={Position.center}>
+            <InterfaceGrid
+                orientation={Orientation.vertical}
+                gap={GapSize.extraLarge}
+                justifyItems={Position.start}
+            >
                 {wasmInitialized ? (
                     <>
                         <div>
@@ -91,31 +98,27 @@ const App = () => {
                                 ref={canvasRef}
                             />
                         </div>
-                        <FileUploadButton
-                            onFileSelect={files => {
-                                console.log(files);
-                            }}
+                        <BufferFileUpload
+                            label="Load ROM"
+                            onFileSelect={setRomBuffer}
+                            uploadedFile={romBuffer}
                             variant="contained"
                             accept=".gb"
-                        >
-                            Load ROM
-                        </FileUploadButton>
-                        <FileUploadButton
-                            onFileSelect={files => {
-                                console.log(files);
-                            }}
+                        />
+                        <BufferFileUpload
+                            label="Load BIOS (Optional)"
+                            onFileSelect={setBiosBuffer}
+                            uploadedFile={biosBuffer}
                             variant="contained"
                             accept=".bin"
-                        >
-                            Load BIOS (Optional)
-                        </FileUploadButton>
+                        />
                         <Button variant="contained">Play Game</Button>
                     </>
                 ) : (
                     <div>Loading...</div>
                 )}
-            </InterfaceWrapper>
-        </AppWrapper>
+            </InterfaceGrid>
+        </AppGrid>
     );
 };
 
