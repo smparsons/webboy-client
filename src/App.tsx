@@ -17,7 +17,7 @@ const InterfaceGrid = styled(CssGrid)`
     padding: 32px;
 `;
 
-const App = () => {
+const App = (): JSX.Element => {
     const [wasmInitialized, setWasmInitialized] = useState(false);
 
     const [romBuffer, setRomBuffer] = useState(null as FileBufferObject | null);
