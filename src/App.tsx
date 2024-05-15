@@ -1,7 +1,8 @@
 import { Button, Typography, styled } from "@mui/material";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { FileUploadButton } from "./fileUploadButton";
+import init from "./pkg/webboy_core.js";
 
 const AppWrapper = styled("div")`
     display: grid;
@@ -27,6 +28,7 @@ const Canvas = styled("canvas")`
 
 const App = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [wasmInitialized, setWasmInitialized] = useState(false);
 
     const initializeCanvas = (): void => {
         const canvasElement = canvasRef.current;
@@ -54,46 +56,64 @@ const App = () => {
         }
     };
 
+    const initalizeWasm = (): void => {
+        init().then(() => {
+            setWasmInitialized(true);
+        });
+    };
+
     useEffect(() => {
-        initializeCanvas();
+        initalizeWasm();
     }, []);
+
+    useEffect(() => {
+        if (wasmInitialized) {
+            initializeCanvas();
+        }
+    }, [wasmInitialized]);
 
     return (
         <AppWrapper>
             <InterfaceWrapper>
-                <div>
-                    <Typography variant="h3">WebBoy</Typography>
-                    <Typography variant="h6">
-                        A simple online Gameboy Emulator.
-                    </Typography>
-                </div>
-                <div>
-                    <Canvas
-                        id="screen"
-                        width="160"
-                        height="144"
-                        ref={canvasRef}
-                    />
-                </div>
-                <FileUploadButton
-                    onFileSelect={files => {
-                        console.log(files);
-                    }}
-                    variant="contained"
-                    accept=".gb"
-                >
-                    Load ROM
-                </FileUploadButton>
-                <FileUploadButton
-                    onFileSelect={files => {
-                        console.log(files);
-                    }}
-                    variant="contained"
-                    accept=".bin"
-                >
-                    Load BIOS (Optional)
-                </FileUploadButton>
-                <Button variant="contained">Play Game</Button>
+                {wasmInitialized ? (
+                    <>
+                        <div>
+                            <Typography variant="h3">WebBoy</Typography>
+                            <Typography variant="h6">
+                                A simple online Gameboy Emulator.
+                            </Typography>
+                        </div>
+                        <div>
+                            <Canvas
+                                id="screen"
+                                width="160"
+                                height="144"
+                                ref={canvasRef}
+                            />
+                        </div>
+                        <FileUploadButton
+                            onFileSelect={files => {
+                                console.log(files);
+                            }}
+                            variant="contained"
+                            accept=".gb"
+                        >
+                            Load ROM
+                        </FileUploadButton>
+                        <FileUploadButton
+                            onFileSelect={files => {
+                                console.log(files);
+                            }}
+                            variant="contained"
+                            accept=".bin"
+                        >
+                            Load BIOS (Optional)
+                        </FileUploadButton>
+                        <Button variant="contained">Play Game</Button>
+                    </>
+                ) : (
+                    <div>Loading...</div>
+                )}
             </InterfaceWrapper>
         </AppWrapper>
     );
