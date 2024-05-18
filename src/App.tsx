@@ -1,3 +1,6 @@
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
     Button,
     CssBaseline,
@@ -46,6 +49,8 @@ const App = (): JSX.Element => {
 
     const [playing, setPlaying] = useState(false);
 
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
     const initalizeWasm = (): void => {
         init().then(() => {
             setWasmInitialized(true);
@@ -87,6 +92,12 @@ const App = (): JSX.Element => {
         }
     }, [playing]);
 
+    const setFullscreen = (): void => {
+        if (canvasRef.current) {
+            canvasRef.current.requestFullscreen();
+        }
+    };
+
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
@@ -104,13 +115,17 @@ const App = (): JSX.Element => {
                                     A simple online Gameboy Emulator.
                                 </Typography>
                             </div>
-                            <GameScreen wasmInitialized={wasmInitialized} />
+                            <GameScreen
+                                wasmInitialized={wasmInitialized}
+                                ref={canvasRef}
+                            />
                             <BufferFileUpload
                                 label="Load ROM"
                                 onFileSelect={setRomBuffer}
                                 uploadedFile={romBuffer}
                                 variant="contained"
                                 accept=".gb"
+                                startIcon={<FileUploadIcon />}
                             />
                             <BufferFileUpload
                                 label="Load BIOS (Optional)"
@@ -118,14 +133,29 @@ const App = (): JSX.Element => {
                                 uploadedFile={biosBuffer}
                                 variant="contained"
                                 accept=".bin"
+                                startIcon={<FileUploadIcon />}
                             />
-                            <Button
-                                variant="contained"
-                                onClick={playGame}
-                                disabled={!romBuffer}
+                            <CssGrid
+                                orientation={Orientation.horizontal}
+                                gap={GapSize.medium}
                             >
-                                Play Game
-                            </Button>
+                                <Button
+                                    variant="contained"
+                                    onClick={playGame}
+                                    disabled={!romBuffer}
+                                    startIcon={<PlayArrowIcon />}
+                                >
+                                    Play
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    onClick={setFullscreen}
+                                    disabled={!romBuffer || !playing}
+                                    startIcon={<FullscreenIcon />}
+                                >
+                                    Fullscreen
+                                </Button>
+                            </CssGrid>
                         </>
                     ) : (
                         <div>Loading...</div>

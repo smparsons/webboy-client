@@ -1,5 +1,5 @@
 import { styled } from "@mui/material";
-import { useEffect, useRef } from "react";
+import { RefObject, forwardRef, useEffect } from "react";
 
 const GAMEBOY_WIDTH = 160;
 const GAMEBOY_HEIGHT = 144;
@@ -33,28 +33,30 @@ const initializeCanvas = (canvasContext: CanvasRenderingContext2D): void => {
     renderFrame(canvasContext, initialBuffer);
 };
 
-const GameScreen = ({ wasmInitialized }: GameScreenProps): JSX.Element => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+const GameScreen = forwardRef<HTMLCanvasElement, GameScreenProps>(
+    ({ wasmInitialized }, ref) => {
+        const canvasRef = ref as RefObject<HTMLCanvasElement>;
 
-    useEffect(() => {
-        if (wasmInitialized && canvasRef.current) {
-            const canvas = canvasRef.current;
-            const canvasContext = canvas.getContext("2d");
+        useEffect(() => {
+            if (wasmInitialized && canvasRef.current) {
+                const canvas = canvasRef.current;
+                const canvasContext = canvas.getContext("2d");
 
-            if (canvasContext) {
-                initializeCanvas(canvasContext);
+                if (canvasContext) {
+                    initializeCanvas(canvasContext);
 
-                (window as any).render = (buffer: number[]): void => {
-                    renderFrame(canvasContext, buffer);
-                };
+                    (window as any).render = (buffer: number[]): void => {
+                        renderFrame(canvasContext, buffer);
+                    };
+                }
             }
-        }
-    }, [wasmInitialized]);
+        }, [wasmInitialized]);
 
-    return (
-        <Screen width={GAMEBOY_WIDTH} height={GAMEBOY_HEIGHT} ref={canvasRef} />
-    );
-};
+        return (
+            <Screen width={GAMEBOY_WIDTH} height={GAMEBOY_HEIGHT} ref={ref} />
+        );
+    },
+);
 
 interface GameScreenProps {
     wasmInitialized: boolean;

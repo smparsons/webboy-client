@@ -6,6 +6,7 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@fontsource/roboto": "^5.0.13",
+    "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.17",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
@@ -29,13 +30,13 @@
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
     "extends": [
-        "react-app",
-        "react-app/jest",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:prettier/recommended"
+      "react-app",
+      "react-app/jest",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:prettier/recommended"
     ],
     "rules": {
-        "react-hooks/exhaustive-deps": "off"
+      "react-hooks/exhaustive-deps": "off"
     }
   },
   "browserslist": {
