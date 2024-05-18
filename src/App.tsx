@@ -95,8 +95,10 @@ const App = (): JSX.Element => {
         }
 
         return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-            window.removeEventListener("keyup", handleKeyUp);
+            if (playing) {
+                window.removeEventListener("keydown", handleKeyDown);
+                window.removeEventListener("keyup", handleKeyUp);
+            }
         };
     }, [playing]);
 
