@@ -9,7 +9,7 @@ import {
     createTheme,
     styled,
 } from "@mui/material";
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import {
     BufferFileUpload,
@@ -78,18 +78,26 @@ const App = (): JSX.Element => {
         }
     };
 
+    const handleKeyDown = (event: KeyboardEvent): void => {
+        pressKey(event.keyCode);
+    };
+
+    const handleKeyUp = (event: KeyboardEvent): void => {
+        releaseKey(event.keyCode);
+    };
+
     useEffect(() => {
         if (playing) {
-            window.onkeydown = e => {
-                pressKey(e.keyCode);
-            };
-
-            window.onkeyup = e => {
-                releaseKey(e.keyCode);
-            };
-
             renderLoop();
+
+            window.addEventListener("keydown", handleKeyDown);
+            window.addEventListener("keyup", handleKeyUp);
         }
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
     }, [playing]);
 
     const setFullscreen = (): void => {
