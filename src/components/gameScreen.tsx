@@ -5,8 +5,8 @@ const GAMEBOY_WIDTH = 160;
 const GAMEBOY_HEIGHT = 144;
 
 const Screen = styled("canvas")`
-    width: ${GAMEBOY_WIDTH * 2}px;
-    height: ${GAMEBOY_HEIGHT * 2}px;
+    width: ${GAMEBOY_WIDTH * 2.5}px;
+    height: ${GAMEBOY_HEIGHT * 2.5}px;
     border: ${({ theme }) => `1px solid ${theme.palette.text.secondary}`};
 `;
 
@@ -34,7 +34,7 @@ const initializeCanvas = (canvasContext: CanvasRenderingContext2D): void => {
 };
 
 const GameScreen = forwardRef<HTMLCanvasElement, GameScreenProps>(
-    ({ wasmInitialized, playing }, ref) => {
+    ({ wasmInitialized, playing, paused }, ref) => {
         const canvasRef = ref as RefObject<HTMLCanvasElement>;
 
         useEffect(() => {
@@ -55,11 +55,11 @@ const GameScreen = forwardRef<HTMLCanvasElement, GameScreenProps>(
                 const canvas = canvasRef.current;
                 const canvasContext = canvas.getContext("2d");
 
-                if (canvasContext && !playing) {
+                if (canvasContext && !paused && !playing) {
                     initializeCanvas(canvasContext);
                 }
             }
-        }, [playing]);
+        }, [playing, paused]);
 
         return (
             <Screen width={GAMEBOY_WIDTH} height={GAMEBOY_HEIGHT} ref={ref} />
@@ -70,6 +70,7 @@ const GameScreen = forwardRef<HTMLCanvasElement, GameScreenProps>(
 interface GameScreenProps {
     wasmInitialized: boolean;
     playing: boolean;
+    paused: boolean;
 }
 
 export default GameScreen;

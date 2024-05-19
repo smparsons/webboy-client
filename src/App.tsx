@@ -1,5 +1,6 @@
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
@@ -61,6 +62,7 @@ const App = (): JSX.Element => {
     );
 
     const [playing, setPlaying] = useState(false);
+    const [paused, setPaused] = useState(false);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const animationFrameIdRef = useRef<number | null>(null);
@@ -98,10 +100,22 @@ const App = (): JSX.Element => {
 
     const resetGame = (): void => {
         setPlaying(false);
+        setPaused(false);
         resetEmulator();
         stopRenderLoop();
         setRomBuffer(null);
         setBiosBuffer(null);
+    };
+
+    const pauseGame = (): void => {
+        setPaused(true);
+        setPlaying(false);
+        stopRenderLoop();
+    };
+
+    const resumeGame = (): void => {
+        setPaused(false);
+        setPlaying(true);
     };
 
     const handleKeyDown = (event: KeyboardEvent): void => {
@@ -164,6 +178,7 @@ const App = (): JSX.Element => {
                             <GameScreen
                                 wasmInitialized={wasmInitialized}
                                 playing={playing}
+                                paused={paused}
                                 ref={canvasRef}
                             />
                             <BufferFileUpload
@@ -186,28 +201,37 @@ const App = (): JSX.Element => {
                                 orientation={Orientation.horizontal}
                                 gap={GapSize.medium}
                             >
-                                {playing ? (
+                                {!playing || paused ? (
                                     <Button
                                         variant="contained"
-                                        onClick={resetGame}
-                                        startIcon={<RefreshIcon />}
+                                        disabled={!romBuffer}
+                                        onClick={paused ? resumeGame : playGame}
+                                        startIcon={<PlayArrowIcon />}
                                     >
-                                        Reset
+                                        {paused ? "Resume" : "Play"}
                                     </Button>
                                 ) : (
                                     <Button
                                         variant="contained"
-                                        onClick={playGame}
-                                        disabled={!romBuffer}
-                                        startIcon={<PlayArrowIcon />}
+                                        onClick={pauseGame}
+                                        startIcon={<PauseIcon />}
                                     >
-                                        Play
+                                        Pause
                                     </Button>
                                 )}
+
+                                <Button
+                                    variant="contained"
+                                    onClick={resetGame}
+                                    disabled={!playing && !paused}
+                                    startIcon={<RefreshIcon />}
+                                >
+                                    Reset
+                                </Button>
                                 <Button
                                     variant="contained"
                                     onClick={setFullscreen}
-                                    disabled={!playing}
+                                    disabled={!playing && !paused}
                                     startIcon={<FullscreenIcon />}
                                 >
                                     Fullscreen
