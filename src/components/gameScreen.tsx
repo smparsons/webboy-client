@@ -5,8 +5,8 @@ const GAMEBOY_WIDTH = 160;
 const GAMEBOY_HEIGHT = 144;
 
 const Screen = styled("canvas")`
-    width: ${GAMEBOY_WIDTH * 2.5}px;
-    height: ${GAMEBOY_HEIGHT * 2.5}px;
+    width: ${GAMEBOY_WIDTH * 3}px;
+    height: ${GAMEBOY_HEIGHT * 3}px;
     border: ${({ theme }) => `1px solid ${theme.palette.text.secondary}`};
 `;
 

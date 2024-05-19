@@ -1,5 +1,6 @@
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import HelpIcon from "@mui/icons-material/Help";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -19,6 +20,7 @@ import {
 } from "./components/bufferFileUpload";
 import { CssGrid, GapSize, Orientation, Position } from "./components/cssGrid";
 import GameScreen from "./components/gameScreen";
+import HelpModal from "./components/helpModal";
 import init, {
     initializeEmulator,
     initializeEmulatorWithoutBios,
@@ -34,6 +36,10 @@ const AppGrid = styled(CssGrid)`
 
 const InterfaceGrid = styled(CssGrid)`
     padding: 32px;
+`;
+
+const Header = styled("div")`
+    width: 100%;
 `;
 
 const darkTheme = createTheme({
@@ -63,6 +69,8 @@ const App = (): JSX.Element => {
 
     const [playing, setPlaying] = useState(false);
     const [paused, setPaused] = useState(false);
+
+    const [showHelpText, setShowHelpText] = useState(false);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const animationFrameIdRef = useRef<number | null>(null);
@@ -169,12 +177,26 @@ const App = (): JSX.Element => {
                 >
                     {wasmInitialized ? (
                         <>
-                            <div>
-                                <Typography variant="h3">WebBoy</Typography>
+                            <Header>
+                                <CssGrid
+                                    orientation={Orientation.horizontal}
+                                    alignItems={Position.center}
+                                    template="1fr auto"
+                                >
+                                    <Typography variant="h3">WebBoy</Typography>
+                                    <Button
+                                        color="secondary"
+                                        variant="contained"
+                                        onClick={() => setShowHelpText(true)}
+                                        startIcon={<HelpIcon />}
+                                    >
+                                        Help
+                                    </Button>
+                                </CssGrid>
                                 <Typography variant="h6">
                                     A simple online Gameboy Emulator.
                                 </Typography>
-                            </div>
+                            </Header>
                             <GameScreen
                                 wasmInitialized={wasmInitialized}
                                 playing={playing}
@@ -237,6 +259,10 @@ const App = (): JSX.Element => {
                                     Fullscreen
                                 </Button>
                             </CssGrid>
+                            <HelpModal
+                                showHelpText={showHelpText}
+                                onClose={() => setShowHelpText(false)}
+                            />
                         </>
                     ) : (
                         <div>Loading...</div>
