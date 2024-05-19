@@ -9,7 +9,7 @@ import {
     createTheme,
     styled,
 } from "@mui/material";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
     BufferFileUpload,
@@ -39,6 +39,17 @@ const darkTheme = createTheme({
     },
 });
 
+const keys = [
+    "ArrowDown",
+    "ArrowUp",
+    "ArrowLeft",
+    "ArrowRight",
+    "Enter",
+    "Space",
+    "KeyX",
+    "KeyZ",
+];
+
 const App = (): JSX.Element => {
     const [wasmInitialized, setWasmInitialized] = useState(false);
 
@@ -67,11 +78,7 @@ const App = (): JSX.Element => {
         setPlaying(true);
     };
 
-    useEffect(() => {
-        initalizeWasm();
-    }, []);
-
-    const renderLoop = (): void => {
+    const renderLoop = () => {
         if (playing) {
             stepFrame();
             window.requestAnimationFrame(() => renderLoop());
@@ -79,12 +86,22 @@ const App = (): JSX.Element => {
     };
 
     const handleKeyDown = (event: KeyboardEvent): void => {
-        pressKey(event.keyCode);
+        if (keys.includes(event.code)) {
+            event.preventDefault();
+            pressKey(event.code);
+        }
     };
 
     const handleKeyUp = (event: KeyboardEvent): void => {
-        releaseKey(event.keyCode);
+        if (keys.includes(event.code)) {
+            event.preventDefault();
+            releaseKey(event.code);
+        }
     };
+
+    useEffect(() => {
+        initalizeWasm();
+    }, []);
 
     useEffect(() => {
         if (playing) {
@@ -160,7 +177,7 @@ const App = (): JSX.Element => {
                                 <Button
                                     variant="contained"
                                     onClick={setFullscreen}
-                                    disabled={!romBuffer || !playing}
+                                    disabled={!playing}
                                     startIcon={<FullscreenIcon />}
                                 >
                                     Fullscreen
