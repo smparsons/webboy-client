@@ -1,6 +1,7 @@
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import {
     Button,
     CssBaseline,
@@ -23,6 +24,7 @@ import init, {
     pressKey,
     releaseKey,
     stepFrame,
+    resetEmulator,
 } from "./core/webboyCore";
 
 const AppGrid = styled(CssGrid)`
@@ -60,7 +62,8 @@ const App = (): JSX.Element => {
 
     const [playing, setPlaying] = useState(false);
 
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const animationFrameIdRef = useRef<number | null>(null);
 
     const initalizeWasm = (): void => {
         init().then(() => {
@@ -78,11 +81,27 @@ const App = (): JSX.Element => {
         setPlaying(true);
     };
 
-    const renderLoop = () => {
+    const renderLoop = (): void => {
         if (playing) {
             stepFrame();
-            window.requestAnimationFrame(() => renderLoop());
+            animationFrameIdRef.current = window.requestAnimationFrame(() =>
+                renderLoop(),
+            );
         }
+    };
+
+    const stopRenderLoop = (): void => {
+        if (animationFrameIdRef.current) {
+            window.cancelAnimationFrame(animationFrameIdRef.current);
+        }
+    };
+
+    const resetGame = (): void => {
+        setPlaying(false);
+        resetEmulator();
+        stopRenderLoop();
+        setRomBuffer(null);
+        setBiosBuffer(null);
     };
 
     const handleKeyDown = (event: KeyboardEvent): void => {
@@ -144,6 +163,7 @@ const App = (): JSX.Element => {
                             </div>
                             <GameScreen
                                 wasmInitialized={wasmInitialized}
+                                playing={playing}
                                 ref={canvasRef}
                             />
                             <BufferFileUpload
@@ -166,14 +186,24 @@ const App = (): JSX.Element => {
                                 orientation={Orientation.horizontal}
                                 gap={GapSize.medium}
                             >
-                                <Button
-                                    variant="contained"
-                                    onClick={playGame}
-                                    disabled={!romBuffer}
-                                    startIcon={<PlayArrowIcon />}
-                                >
-                                    Play
-                                </Button>
+                                {playing ? (
+                                    <Button
+                                        variant="contained"
+                                        onClick={resetGame}
+                                        startIcon={<RefreshIcon />}
+                                    >
+                                        Reset
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="contained"
+                                        onClick={playGame}
+                                        disabled={!romBuffer}
+                                        startIcon={<PlayArrowIcon />}
+                                    >
+                                        Play
+                                    </Button>
+                                )}
                                 <Button
                                     variant="contained"
                                     onClick={setFullscreen}

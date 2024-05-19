@@ -1,6 +1,6 @@
 import Button, { ButtonProps } from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
-import * as React from "react";
+import { useRef } from "react";
 
 const HiddenFileInput = styled("input")`
     display: none;
@@ -20,14 +20,19 @@ export const FileUploadButton = ({
     onFileSelect,
     ...buttonProps
 }: FileUploadButtonProps): JSX.Element => {
-    const fileInputRef = React.useRef(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     return (
         <div>
             <HiddenFileInput
                 type="file"
                 accept={accept}
                 ref={fileInputRef}
-                onChange={event => onFileSelect(event.target.files)}
+                onChange={event => {
+                    onFileSelect(event.target.files);
+                    if (fileInputRef.current) {
+                        fileInputRef.current.value = "";
+                    }
+                }}
             />
             <Button
                 onClick={() => openFileDialog(fileInputRef)}

@@ -1,6 +1,3 @@
-import CircularProgress from "@mui/material/CircularProgress";
-import { useState } from "react";
-
 import { CssGrid, Orientation, GapSize, Position } from "./cssGrid";
 import { FileUploadButton, FileUploadButtonProps } from "./fileUploadButton";
 
@@ -29,54 +26,45 @@ export const BufferFileUpload = ({
     uploadedFile,
     label,
     ...remainingProps
-}: BufferFileUploadProps): JSX.Element => {
-    const [processing, setProcessing] = useState(false);
+}: BufferFileUploadProps): JSX.Element => (
+    <CssGrid
+        orientation={Orientation.horizontal}
+        gap={GapSize.medium}
+        alignItems={Position.center}
+        justifyContent={Position.start}
+    >
+        <FileUploadButton
+            variant="contained"
+            {...remainingProps}
+            onFileSelect={async (fileList: FileList | null) => {
+                if (!fileList) return;
 
-    return (
-        <CssGrid
-            orientation={Orientation.horizontal}
-            gap={GapSize.medium}
-            alignItems={Position.center}
-            justifyContent={Position.start}
-        >
-            <FileUploadButton
-                variant="contained"
-                {...remainingProps}
-                onFileSelect={async (fileList: FileList | null) => {
-                    if (!fileList) return;
+                const file = fileList[0];
 
-                    setProcessing(true);
-
-                    const file = fileList[0];
-
-                    try {
-                        const bufferObject = await processFile(file);
-                        if (bufferObject) {
-                            onFileSelect(bufferObject);
-                        }
-                    } catch (err) {
-                        console.error(
-                            "An error occurred while processing the file",
-                            err,
-                        );
-                    } finally {
-                        setProcessing(false);
+                try {
+                    const bufferObject = await processFile(file);
+                    if (bufferObject) {
+                        onFileSelect(bufferObject);
                     }
-                }}
+                } catch (err) {
+                    console.error(
+                        "An error occurred while processing the file",
+                        err,
+                    );
+                }
+            }}
+        >
+            <CssGrid
+                orientation={Orientation.horizontal}
+                gap={GapSize.medium}
+                alignItems={Position.center}
             >
-                <CssGrid
-                    orientation={Orientation.horizontal}
-                    gap={GapSize.medium}
-                    alignItems={Position.center}
-                >
-                    {label || "Choose File"}
-                    {processing && <CircularProgress size={20} />}
-                </CssGrid>
-            </FileUploadButton>
-            <div>{getFieldFileUploadLabel(uploadedFile)}</div>
-        </CssGrid>
-    );
-};
+                {label || "Choose File"}
+            </CssGrid>
+        </FileUploadButton>
+        <div>{getFieldFileUploadLabel(uploadedFile)}</div>
+    </CssGrid>
+);
 
 export interface FileBufferObject {
     filename: string;

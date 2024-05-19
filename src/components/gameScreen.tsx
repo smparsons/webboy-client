@@ -34,7 +34,7 @@ const initializeCanvas = (canvasContext: CanvasRenderingContext2D): void => {
 };
 
 const GameScreen = forwardRef<HTMLCanvasElement, GameScreenProps>(
-    ({ wasmInitialized }, ref) => {
+    ({ wasmInitialized, playing }, ref) => {
         const canvasRef = ref as RefObject<HTMLCanvasElement>;
 
         useEffect(() => {
@@ -43,14 +43,23 @@ const GameScreen = forwardRef<HTMLCanvasElement, GameScreenProps>(
                 const canvasContext = canvas.getContext("2d");
 
                 if (canvasContext) {
-                    initializeCanvas(canvasContext);
-
                     (window as any).render = (buffer: number[]): void => {
                         renderFrame(canvasContext, buffer);
                     };
                 }
             }
         }, [wasmInitialized]);
+
+        useEffect(() => {
+            if (canvasRef.current) {
+                const canvas = canvasRef.current;
+                const canvasContext = canvas.getContext("2d");
+
+                if (canvasContext && !playing) {
+                    initializeCanvas(canvasContext);
+                }
+            }
+        }, [playing]);
 
         return (
             <Screen width={GAMEBOY_WIDTH} height={GAMEBOY_HEIGHT} ref={ref} />
@@ -60,6 +69,7 @@ const GameScreen = forwardRef<HTMLCanvasElement, GameScreenProps>(
 
 interface GameScreenProps {
     wasmInitialized: boolean;
+    playing: boolean;
 }
 
 export default GameScreen;
