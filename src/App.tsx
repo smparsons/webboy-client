@@ -75,6 +75,8 @@ const App = (): JSX.Element => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const animationFrameIdRef = useRef<number | null>(null);
 
+    const audioContextRef = useRef<AudioContext | null>(null);
+
     const initalizeWasm = (): void => {
         init().then(() => {
             setWasmInitialized(true);
@@ -86,6 +88,10 @@ const App = (): JSX.Element => {
             initializeEmulator(romBuffer.data, biosBuffer.data);
         } else if (romBuffer) {
             initializeEmulatorWithoutBios(romBuffer.data);
+        }
+
+        if (!audioContextRef.current) {
+            audioContextRef.current = new AudioContext();
         }
 
         setPlaying(true);
@@ -159,6 +165,43 @@ const App = (): JSX.Element => {
             }
         };
     }, [playing]);
+
+    useEffect(() => {
+        if (wasmInitialized) {
+            (window as any).playAudioSamples = (
+                leftAudioSamples: number[],
+                rightAudioSamples: number[],
+            ): void => {
+                const audioContext = audioContextRef.current;
+
+                if (audioContext) {
+                    const bufferLength = leftAudioSamples.length;
+                    if (bufferLength === 0) {
+                        return;
+                    }
+                    const audioBuffer = audioContext.createBuffer(
+                        2,
+                        bufferLength,
+                        48000,
+                    );
+
+                    const leftChannel = audioBuffer.getChannelData(0);
+                    const rightChannel = audioBuffer.getChannelData(1);
+
+                    for (let i = 0; i < bufferLength; i++) {
+                        leftChannel[i] = leftAudioSamples[i];
+                        rightChannel[i] = rightAudioSamples[i];
+                    }
+
+                    const bufferSource = audioContext.createBufferSource();
+                    bufferSource.buffer = audioBuffer;
+
+                    bufferSource.connect(audioContext.destination);
+                    bufferSource.start();
+                }
+            };
+        }
+    }, [wasmInitialized]);
 
     const setFullscreen = (): void => {
         if (canvasRef.current) {
