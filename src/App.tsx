@@ -59,6 +59,8 @@ const keys = [
     "KeyZ",
 ];
 
+const FRAME_RATE_IN_HZ = 59.7;
+
 const App = (): JSX.Element => {
     const [wasmInitialized, setWasmInitialized] = useState(false);
 
@@ -73,7 +75,7 @@ const App = (): JSX.Element => {
     const [showHelpText, setShowHelpText] = useState(false);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const animationFrameIdRef = useRef<number | null>(null);
+    const timeoutIdRef = useRef<number | null>(null);
 
     const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -99,16 +101,22 @@ const App = (): JSX.Element => {
 
     const renderLoop = (): void => {
         if (playing) {
+            const originalTimeInMs = Date.now();
             stepFrame();
-            animationFrameIdRef.current = window.requestAnimationFrame(() =>
-                renderLoop(),
+            const currentTimeInMs = Date.now();
+
+            const frameStepTime = currentTimeInMs - originalTimeInMs;
+
+            timeoutIdRef.current = window.setTimeout(
+                () => renderLoop(),
+                1000 / FRAME_RATE_IN_HZ - frameStepTime,
             );
         }
     };
 
     const stopRenderLoop = (): void => {
-        if (animationFrameIdRef.current) {
-            window.cancelAnimationFrame(animationFrameIdRef.current);
+        if (timeoutIdRef.current) {
+            window.clearTimeout(timeoutIdRef.current);
         }
     };
 
