@@ -12,7 +12,7 @@ import {
     createTheme,
     styled,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
     BufferFileUpload,
@@ -26,8 +26,8 @@ import init, {
     initializeEmulatorWithoutBios,
     pressKey,
     releaseKey,
-    stepFrame,
     resetEmulator,
+    stepUntilNextAudioBuffer,
 } from "./core/webboyCore";
 
 const AppGrid = styled(CssGrid)`
@@ -73,7 +73,8 @@ const App = (): JSX.Element => {
     const [showHelpText, setShowHelpText] = useState(false);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const animationFrameIdRef = useRef<number | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const scheduledResetRef = useRef<boolean>(false);
 
     const initalizeWasm = (): void => {
         init().then(() => {
@@ -88,37 +89,33 @@ const App = (): JSX.Element => {
             initializeEmulatorWithoutBios(romBuffer.data);
         }
 
+        if (!audioContextRef.current) {
+            audioContextRef.current = new AudioContext();
+        }
+
         setPlaying(true);
-    };
-
-    const renderLoop = (): void => {
-        if (playing) {
-            stepFrame();
-            animationFrameIdRef.current = window.requestAnimationFrame(() =>
-                renderLoop(),
-            );
-        }
-    };
-
-    const stopRenderLoop = (): void => {
-        if (animationFrameIdRef.current) {
-            window.cancelAnimationFrame(animationFrameIdRef.current);
-        }
     };
 
     const resetGame = (): void => {
         setPlaying(false);
         setPaused(false);
         resetEmulator();
-        stopRenderLoop();
         setRomBuffer(null);
         setBiosBuffer(null);
+        scheduledResetRef.current = false;
+    };
+
+    const startReset = (): void => {
+        if (playing) {
+            scheduledResetRef.current = true;
+        } else {
+            resetGame();
+        }
     };
 
     const pauseGame = (): void => {
         setPaused(true);
         setPlaying(false);
-        stopRenderLoop();
     };
 
     const resumeGame = (): void => {
@@ -140,13 +137,72 @@ const App = (): JSX.Element => {
         }
     };
 
+    const setFullscreen = (): void => {
+        if (canvasRef.current) {
+            canvasRef.current.requestFullscreen();
+        }
+    };
+
     useEffect(() => {
         initalizeWasm();
     }, []);
 
+    const step = useCallback(() => {
+        if (scheduledResetRef.current) {
+            resetGame();
+        } else if (playing) {
+            stepUntilNextAudioBuffer();
+        }
+    }, [playing]);
+
+    useEffect(() => {
+        if (wasmInitialized) {
+            (window as any).playAudioSamples = (
+                leftAudioSamples: number[],
+                rightAudioSamples: number[],
+            ): void => {
+                const audioContext = audioContextRef.current;
+
+                if (audioContext) {
+                    const bufferLength = leftAudioSamples.length;
+                    if (bufferLength === 0) {
+                        return;
+                    }
+                    const audioBuffer = audioContext.createBuffer(
+                        2,
+                        bufferLength,
+                        48000,
+                    );
+
+                    const leftChannel = audioBuffer.getChannelData(0);
+                    const rightChannel = audioBuffer.getChannelData(1);
+
+                    for (let i = 0; i < bufferLength; i++) {
+                        leftChannel[i] = leftAudioSamples[i];
+                        rightChannel[i] = rightAudioSamples[i];
+                    }
+
+                    const bufferSource = audioContext.createBufferSource();
+                    bufferSource.buffer = audioBuffer;
+
+                    bufferSource.onended = () => {
+                        step();
+                    };
+
+                    const gainNode = audioContext.createGain();
+                    gainNode.gain.value = 0.25;
+                    gainNode.connect(audioContext.destination);
+
+                    bufferSource.connect(gainNode);
+                    bufferSource.start();
+                }
+            };
+        }
+    }, [wasmInitialized, playing]);
+
     useEffect(() => {
         if (playing) {
-            renderLoop();
+            step();
 
             window.addEventListener("keydown", handleKeyDown);
             window.addEventListener("keyup", handleKeyUp);
@@ -159,12 +215,6 @@ const App = (): JSX.Element => {
             }
         };
     }, [playing]);
-
-    const setFullscreen = (): void => {
-        if (canvasRef.current) {
-            canvasRef.current.requestFullscreen();
-        }
-    };
 
     return (
         <ThemeProvider theme={darkTheme}>
@@ -244,7 +294,7 @@ const App = (): JSX.Element => {
 
                                 <Button
                                     variant="contained"
-                                    onClick={resetGame}
+                                    onClick={startReset}
                                     disabled={!playing && !paused}
                                     startIcon={<RefreshIcon />}
                                 >
